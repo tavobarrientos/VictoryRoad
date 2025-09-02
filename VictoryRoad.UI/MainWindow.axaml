@@ -1,0 +1,293 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:VictoryRoad.UI.ViewModels"
+        xmlns:conv="using:VictoryRoad.UI.Converters"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="VictoryRoad.UI.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="1200" Height="800"
+        Title="Victory Road - Pokemon TCG Deck List Generator">
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" Text="Pokemon TCG Deck List Generator" 
+                   FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+        
+        <Grid Grid.Row="1" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            
+            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,10">
+                <TextBlock Text="Player Name:" Margin="0,0,0,5"/>
+                <TextBox Text="{Binding PlayerName}" Watermark="Enter player name"/>
+            </StackPanel>
+            
+            <StackPanel Grid.Row="0" Grid.Column="1" Margin="5,0,5,10">
+                <TextBlock Text="Player ID:" Margin="0,0,0,5"/>
+                <TextBox Text="{Binding PlayerId}" Watermark="Enter player ID"/>
+            </StackPanel>
+            
+            <StackPanel Grid.Row="0" Grid.Column="2" Margin="5,0,0,10">
+                <TextBlock Text="Date:" Margin="0,0,0,5"/>
+                <DatePicker SelectedDate="{Binding Date}"/>
+            </StackPanel>
+            
+            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
+                <TextBlock Text="Division:" Margin="0,0,0,5"/>
+                <ComboBox SelectedItem="{Binding Division}" Width="200" HorizontalAlignment="Left">
+                    <ComboBox.Items>
+                        <x:String>Junior</x:String>
+                        <x:String>Senior</x:String>
+                        <x:String>Masters</x:String>
+                    </ComboBox.Items>
+                </ComboBox>
+            </StackPanel>
+            
+            <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,0,5,0">
+                <TextBlock Text="Format:" Margin="0,0,0,5"/>
+                <ComboBox SelectedItem="{Binding Format}" Width="120" HorizontalAlignment="Left">
+                    <ComboBox.Items>
+                        <x:String>Standard</x:String>
+                        <x:String>Expanded</x:String>
+                    </ComboBox.Items>
+                </ComboBox>
+            </StackPanel>
+        </Grid>
+        
+        <TabControl Grid.Row="2">
+            <TabItem Header="Manual Entry">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <ScrollViewer Grid.Row="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" Margin="5">
+                                <StackPanel>
+                                    <Grid Background="LightBlue" Height="40">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Pokemon" FontWeight="Bold" 
+                                                   VerticalAlignment="Center" Margin="10,0"/>
+                                        <Button Grid.Column="1" Content="+ Add" Click="AddPokemon_Click" 
+                                                Margin="5" Padding="10,5"/>
+                                    </Grid>
+                                    <ItemsControl ItemsSource="{Binding PokemonCards}" Margin="5">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="5">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="100"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="60"/>
+                                                            <ColumnDefinition Width="75"/>
+                                                            <ColumnDefinition Width="40"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <NumericUpDown Grid.Column="0" 
+                                                                       Value="{Binding Quantity, Mode=TwoWay}" 
+                                                                       Minimum="1" 
+                                                                       Maximum="4" 
+                                                                       Width="100" 
+                                                                       ShowButtonSpinner="True"
+                                                                       FormatString="0"
+                                                                       Increment="1"/>
+                                                        <TextBox Grid.Column="1" Text="{Binding Name}" Margin="5,0"/>
+                                                        <TextBox Grid.Column="2" Text="{Binding SetCode}" Margin="5,0" 
+                                                                 Watermark="SET"/>
+                                                        <TextBox Grid.Column="3" Text="{Binding CollectorNumber}" Margin="5,0" 
+                                                                 Watermark="#"/>
+                                                        <Button Grid.Column="4" Content="X" 
+                                                                Click="RemoveCard_Click"
+                                                                Tag="{Binding}"
+                                                                Background="Red" Foreground="White"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                            
+                            <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
+                                <StackPanel>
+                                    <Grid Background="LightGreen" Height="40">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Trainers" FontWeight="Bold" 
+                                                   VerticalAlignment="Center" Margin="10,0"/>
+                                        <Button Grid.Column="1" Content="+ Add" Click="AddTrainer_Click" 
+                                                Margin="5" Padding="10,5"/>
+                                    </Grid>
+                                    <ItemsControl ItemsSource="{Binding TrainerCards}" Margin="5">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="5">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="100"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="60"/>
+                                                            <ColumnDefinition Width="75"/>
+                                                            <ColumnDefinition Width="40"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <NumericUpDown Grid.Column="0" 
+                                                                       Value="{Binding Quantity, Mode=TwoWay}" 
+                                                                       Minimum="1" 
+                                                                       Maximum="4" 
+                                                                       Width="100" 
+                                                                       ShowButtonSpinner="True"
+                                                                       FormatString="0"
+                                                                       Increment="1"/>
+                                                        <TextBox Grid.Column="1" Text="{Binding Name}" Margin="5,0"/>
+                                                        <TextBox Grid.Column="2" Text="{Binding SetCode}" Margin="5,0" 
+                                                                 Watermark="SET"/>
+                                                        <TextBox Grid.Column="3" Text="{Binding CollectorNumber}" Margin="5,0" 
+                                                                 Watermark="#"/>
+                                                        <Button Grid.Column="4" Content="X" 
+                                                                Click="RemoveCard_Click"
+                                                                Tag="{Binding}"
+                                                                Background="Red" Foreground="White"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                            
+                            <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1" Margin="5">
+                                <StackPanel>
+                                    <Grid Background="LightCoral" Height="40">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Energy" FontWeight="Bold" 
+                                                   VerticalAlignment="Center" Margin="10,0"/>
+                                        <Button Grid.Column="1" Content="+ Add" Click="AddEnergy_Click" 
+                                                Margin="5" Padding="10,5"/>
+                                    </Grid>
+                                    <ItemsControl ItemsSource="{Binding EnergyCards}" Margin="5">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="5">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="100"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="60"/>
+                                                            <ColumnDefinition Width="75"/>
+                                                            <ColumnDefinition Width="40"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <NumericUpDown Grid.Column="0" 
+                                                                       Value="{Binding Quantity, Mode=TwoWay}" 
+                                                                       Minimum="1" 
+                                                                       Maximum="99" 
+                                                                       Width="100" 
+                                                                       ShowButtonSpinner="True"
+                                                                       FormatString="0"
+                                                                       Increment="1"/>
+                                                        <TextBox Grid.Column="1" Text="{Binding Name}" Margin="5,0"/>
+                                                        <TextBox Grid.Column="2" Text="{Binding SetCode}" Margin="5,0" 
+                                                                 Watermark="SET"/>
+                                                        <TextBox Grid.Column="3" Text="{Binding CollectorNumber}" Margin="5,0" 
+                                                                 Watermark="#"/>
+                                                        <Button Grid.Column="4" Content="X" 
+                                                                Click="RemoveCard_Click"
+                                                                Tag="{Binding}"
+                                                                Background="Red" Foreground="White"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+            
+            <TabItem Header="Import from TCG Live">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Text="Paste your TCG Live deck list below:" Margin="0,0,0,10"/>
+                    <TextBox Grid.Row="1" Text="{Binding ImportText}" 
+                             AcceptsReturn="True" TextWrapping="Wrap"
+                             Watermark="Paste deck list here..."/>
+                    <Button Grid.Row="2" Content="Import Deck" Click="ImportDeck_Click"
+                            HorizontalAlignment="Center" Margin="0,10,0,0" Padding="20,10"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="0,1,0,0" Margin="0,10,0,10" Padding="0,10,0,0">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Grid.Column="0" FontSize="16" FontWeight="Bold">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="Total Cards: {0}/60">
+                                <Binding Path="TotalCardCount"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                    
+                    <TextBlock Grid.Column="1" Text="{Binding ValidationMessage}" 
+                               Margin="20,0,0,0" TextWrapping="Wrap"
+                               Foreground="{Binding IsValid, Converter={x:Static conv:BoolToColorConverter.Instance}}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+        
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Content="Clear All" Click="ClearAll_Click" 
+                    Margin="5" Padding="15,10"/>
+            <Button Content="Validate" Click="Validate_Click" 
+                    Margin="5" Padding="15,10"/>
+            <Button Content="Export to PDF" Click="ExportPdf_Click" 
+                    IsEnabled="{Binding IsValid}"
+                    Margin="5" Padding="15,10" Background="Green" Foreground="White"/>
+        </StackPanel>
+    </Grid>
+</Window>
