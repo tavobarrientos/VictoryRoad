@@ -1,0 +1,160 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a pre-release?'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          # Windows builds
+          - os: Windows
+            runner: windows-latest
+            runtime: win-x64
+            arch: x64
+          - os: Windows
+            runner: windows-latest
+            runtime: win-x86
+            arch: x86
+          - os: Windows
+            runner: windows-latest
+            runtime: win-arm64
+            arch: arm64
+          # Linux builds
+          - os: Linux
+            runner: ubuntu-latest
+            runtime: linux-x64
+            arch: x64
+          - os: Linux
+            runner: ubuntu-latest
+            runtime: linux-arm64
+            arch: arm64
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build and Publish
+        shell: bash
+        run: |
+          dotnet publish VictoryRoad.UI/VictoryRoad.UI.csproj \
+            -c Release \
+            -r ${{ matrix.runtime }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -o publish/
+      
+      - name: Create Archive (Windows)
+        if: matrix.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path publish/* -DestinationPath VictoryRoad-${{ matrix.os }}-${{ matrix.arch }}-v${{ github.event.inputs.version }}.zip
+      
+      - name: Create Archive (Linux)
+        if: matrix.os == 'Linux'
+        run: |
+          chmod +x publish/VictoryRoad.UI
+          tar czf VictoryRoad-${{ matrix.os }}-${{ matrix.arch }}-v${{ github.event.inputs.version }}.tar.gz -C publish .
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VictoryRoad-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            *.zip
+            *.tar.gz
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Generate Release Notes
+        id: notes
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          
+          # Get latest commits
+          echo "## Victory Road v${VERSION}" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          
+          # Add recent commits
+          echo "### Recent Changes" >> RELEASE_NOTES.md
+          git log --pretty=format:"- %s" -10 >> RELEASE_NOTES.md
+          
+          echo "" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "### Downloads" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "#### Windows" >> RELEASE_NOTES.md
+          echo "- **x64 (64-bit Intel/AMD)**: VictoryRoad-Windows-x64-v${VERSION}.zip" >> RELEASE_NOTES.md
+          echo "- **x86 (32-bit)**: VictoryRoad-Windows-x86-v${VERSION}.zip" >> RELEASE_NOTES.md
+          echo "- **ARM64**: VictoryRoad-Windows-arm64-v${VERSION}.zip" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "#### Linux" >> RELEASE_NOTES.md
+          echo "- **x64 (64-bit Intel/AMD)**: VictoryRoad-Linux-x64-v${VERSION}.tar.gz" >> RELEASE_NOTES.md
+          echo "- **ARM64**: VictoryRoad-Linux-arm64-v${VERSION}.tar.gz" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "### Installation" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "**Windows**: Extract the ZIP file and run \`VictoryRoad.UI.exe\`" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "**Linux**: Extract the tar.gz file and run:" >> RELEASE_NOTES.md
+          echo '```bash' >> RELEASE_NOTES.md
+          echo 'tar xzf VictoryRoad-Linux-*.tar.gz' >> RELEASE_NOTES.md
+          echo 'chmod +x VictoryRoad.UI' >> RELEASE_NOTES.md
+          echo './VictoryRoad.UI' >> RELEASE_NOTES.md
+          echo '```' >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "### Requirements" >> RELEASE_NOTES.md
+          echo "- No .NET runtime installation required (self-contained)" >> RELEASE_NOTES.md
+          echo "- Windows 10 or later / Linux with glibc 2.17+" >> RELEASE_NOTES.md
+          echo "- PDF templates are included with the application" >> RELEASE_NOTES.md
+          
+          # Output for GitHub Action
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          cat RELEASE_NOTES.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: Victory Road v${{ github.event.inputs.version }}
+          body: ${{ steps.notes.outputs.notes }}
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease }}
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

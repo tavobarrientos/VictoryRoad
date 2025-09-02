@@ -1,0 +1,324 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        runtime: [win-x64, win-x86, win-arm64]
+        include:
+          - runtime: win-x64
+            arch: x64
+          - runtime: win-x86
+            arch: x86
+          - runtime: win-arm64
+            arch: arm64
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build and Publish
+        run: |
+          dotnet publish VictoryRoad.UI/VictoryRoad.UI.csproj `
+            -c Release `
+            -r ${{ matrix.runtime }} `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -o publish/${{ matrix.arch }}
+      
+      - name: Create Archive
+        run: |
+          Compress-Archive -Path publish/${{ matrix.arch }}/* -DestinationPath VictoryRoad-Windows-${{ matrix.arch }}.zip
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VictoryRoad-Windows-${{ matrix.arch }}
+          path: VictoryRoad-Windows-${{ matrix.arch }}.zip
+
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [linux-x64, linux-arm64]
+        include:
+          - runtime: linux-x64
+            arch: x64
+          - runtime: linux-arm64
+            arch: arm64
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm dpkg-dev
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build and Publish
+        run: |
+          dotnet publish VictoryRoad.UI/VictoryRoad.UI.csproj \
+            -c Release \
+            -r ${{ matrix.runtime }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -o publish/${{ matrix.arch }}
+      
+      - name: Set executable permissions
+        run: chmod +x publish/${{ matrix.arch }}/VictoryRoad.UI
+      
+      - name: Prepare package structure
+        run: |
+          # Create directory structure for packages
+          mkdir -p package/usr/bin
+          mkdir -p package/usr/share/applications
+          mkdir -p package/usr/share/doc/victoryroad
+          
+          # Copy files
+          cp publish/${{ matrix.arch }}/VictoryRoad.UI package/usr/bin/victoryroad
+          cp publish/${{ matrix.arch }}/*.pdf package/usr/bin/
+          
+          # Create desktop file
+          cat > package/usr/share/applications/victoryroad.desktop << EOF
+          [Desktop Entry]
+          Name=Victory Road
+          Comment=Pokemon TCG Deck List Generator
+          Exec=/usr/bin/victoryroad
+          Icon=victoryroad
+          Type=Application
+          Categories=Game;CardGame;Utility;
+          EOF
+          
+          # Create basic documentation
+          echo "Victory Road - Pokemon TCG Deck List Generator" > package/usr/share/doc/victoryroad/README
+          echo "Version: ${{ github.event.inputs.version || github.ref_name }}" >> package/usr/share/doc/victoryroad/README
+      
+      - name: Create DEB package
+        run: |
+          # Set version
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
+          
+          # Create debian control structure
+          mkdir -p package/DEBIAN
+          cat > package/DEBIAN/control << EOF
+          Package: victoryroad
+          Version: ${VERSION}
+          Section: games
+          Priority: optional
+          Architecture: ${{ matrix.arch == 'x64' && 'amd64' || 'arm64' }}
+          Maintainer: Victory Road Team <support@victoryroad.app>
+          Description: Pokemon TCG Deck List Generator
+           Victory Road is a desktop application for creating and managing
+           Pokemon Trading Card Game deck lists for official tournaments.
+          Depends: libicu-dev
+          EOF
+          
+          # Build DEB package
+          dpkg-deb --build package victoryroad_${VERSION}_${{ matrix.arch }}.deb
+      
+      - name: Create RPM package
+        run: |
+          # Set version
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
+          
+          # Create RPM build structure
+          mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+          
+          # Create tarball of package contents
+          tar czf ~/rpmbuild/SOURCES/victoryroad-${VERSION}.tar.gz -C package .
+          
+          # Create spec file
+          cat > ~/rpmbuild/SPECS/victoryroad.spec << EOF
+          Name:           victoryroad
+          Version:        ${VERSION}
+          Release:        1%{?dist}
+          Summary:        Pokemon TCG Deck List Generator
+          License:        MIT
+          URL:            https://github.com/yourusername/victory-road
+          Source0:        victoryroad-${VERSION}.tar.gz
+          
+          BuildArch:      ${{ matrix.arch == 'x64' && 'x86_64' || 'aarch64' }}
+          Requires:       libicu
+          
+          %description
+          Victory Road is a desktop application for creating and managing
+          Pokemon Trading Card Game deck lists for official tournaments.
+          
+          %prep
+          %setup -q -c
+          
+          %install
+          mkdir -p %{buildroot}
+          cp -r * %{buildroot}/
+          
+          %files
+          /usr/bin/victoryroad
+          /usr/bin/*.pdf
+          /usr/share/applications/victoryroad.desktop
+          /usr/share/doc/victoryroad/README
+          
+          %changelog
+          * $(date '+%a %b %d %Y') Victory Road Team <support@victoryroad.app> - ${VERSION}-1
+          - Release version ${VERSION}
+          EOF
+          
+          # Build RPM
+          rpmbuild -bb ~/rpmbuild/SPECS/victoryroad.spec
+          cp ~/rpmbuild/RPMS/*/*.rpm victoryroad-${VERSION}-${{ matrix.arch }}.rpm
+      
+      - name: Create TAR.GZ archive
+        run: |
+          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          VERSION="${VERSION#v}"
+          tar czf victoryroad-${VERSION}-${{ matrix.runtime }}.tar.gz -C publish/${{ matrix.arch }} .
+      
+      - name: Upload DEB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: victoryroad-deb-${{ matrix.arch }}
+          path: "*.deb"
+      
+      - name: Upload RPM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: victoryroad-rpm-${{ matrix.arch }}
+          path: "*.rpm"
+      
+      - name: Upload TAR.GZ Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: victoryroad-tar-${{ matrix.runtime }}
+          path: "*.tar.gz"
+
+  create-release:
+    name: Create Release
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for changelog
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          CURRENT_TAG="${{ github.event.inputs.version || github.ref_name }}"
+          
+          echo "## What's Changed" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "### Initial Release 🎉" >> CHANGELOG.md
+            git log --pretty=format:"- %s (%an)" >> CHANGELOG.md
+          else
+            # Get commit messages between tags
+            git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%an)" >> CHANGELOG.md
+          fi
+          
+          echo "" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "## Downloads" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Windows" >> CHANGELOG.md
+          echo "- **x64 (Intel/AMD)**: VictoryRoad-Windows-x64.zip" >> CHANGELOG.md
+          echo "- **x86 (32-bit)**: VictoryRoad-Windows-x86.zip" >> CHANGELOG.md
+          echo "- **ARM64**: VictoryRoad-Windows-arm64.zip" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Linux" >> CHANGELOG.md
+          echo "#### DEB Packages (Debian/Ubuntu)" >> CHANGELOG.md
+          echo "- **x64**: victoryroad_*_x64.deb" >> CHANGELOG.md
+          echo "- **ARM64**: victoryroad_*_arm64.deb" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "#### RPM Packages (Fedora/RHEL/openSUSE)" >> CHANGELOG.md
+          echo "- **x64**: victoryroad-*-x64.rpm" >> CHANGELOG.md
+          echo "- **ARM64**: victoryroad-*-arm64.rpm" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "#### Generic Linux (tar.gz)" >> CHANGELOG.md
+          echo "- **x64**: victoryroad-*-linux-x64.tar.gz" >> CHANGELOG.md
+          echo "- **ARM64**: victoryroad-*-linux-arm64.tar.gz" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "## Installation" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Debian/Ubuntu" >> CHANGELOG.md
+          echo '```bash' >> CHANGELOG.md
+          echo 'sudo dpkg -i victoryroad_*.deb' >> CHANGELOG.md
+          echo '# If dependencies are missing:' >> CHANGELOG.md
+          echo 'sudo apt-get install -f' >> CHANGELOG.md
+          echo '```' >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Fedora/RHEL" >> CHANGELOG.md
+          echo '```bash' >> CHANGELOG.md
+          echo 'sudo rpm -i victoryroad-*.rpm' >> CHANGELOG.md
+          echo '# Or with yum:' >> CHANGELOG.md
+          echo 'sudo yum install victoryroad-*.rpm' >> CHANGELOG.md
+          echo '```' >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Arch Linux" >> CHANGELOG.md
+          echo '```bash' >> CHANGELOG.md
+          echo '# Extract the tar.gz and run:' >> CHANGELOG.md
+          echo 'tar xzf victoryroad-*-linux-x64.tar.gz' >> CHANGELOG.md
+          echo './VictoryRoad.UI' >> CHANGELOG.md
+          echo '```' >> CHANGELOG.md
+          
+          # Set changelog as output
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          cat CHANGELOG.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.version || github.ref_name }}
+          name: Victory Road ${{ github.event.inputs.version || github.ref_name }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/**/*.zip
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+            artifacts/**/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
