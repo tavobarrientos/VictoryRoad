@@ -178,7 +178,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y rpm dpkg-dev
+          sudo apt-get install -y dpkg-dev
       
       - name: Restore dependencies
         run: dotnet restore
@@ -248,59 +248,6 @@ jobs:
           # Build DEB package
           dpkg-deb --build package victoryroad_${VERSION}_${{ matrix.arch }}.deb
       
-      - name: Create RPM package
-        run: |
-          # Use the determined version
-          VERSION="${{ needs.determine-version.outputs.version }}"
-          # Remove 'v' prefix and build metadata for package version
-          VERSION="${VERSION#v}"
-          VERSION="${VERSION%%[-+]*}"  # Remove pre-release and build metadata
-          
-          # Create RPM build structure
-          mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-          
-          # Create tarball of package contents
-          tar czf ~/rpmbuild/SOURCES/victoryroad-${VERSION}.tar.gz -C package .
-          
-          # Create spec file
-          cat > ~/rpmbuild/SPECS/victoryroad.spec << EOF
-          Name:           victoryroad
-          Version:        ${VERSION}
-          Release:        1%{?dist}
-          Summary:        Pokemon TCG Deck List Generator
-          License:        MIT
-          URL:            https://github.com/yourusername/victory-road
-          Source0:        victoryroad-${VERSION}.tar.gz
-          
-          BuildArch:      ${{ matrix.arch == 'x64' && 'x86_64' || 'aarch64' }}
-          Requires:       libicu
-          
-          %description
-          Victory Road is a desktop application for creating and managing
-          Pokemon Trading Card Game deck lists for official tournaments.
-          
-          %prep
-          %setup -q -c
-          
-          %install
-          mkdir -p %{buildroot}
-          cp -r * %{buildroot}/
-          
-          %files
-          /usr/bin/victoryroad
-          /usr/bin/*.pdf
-          /usr/share/applications/victoryroad.desktop
-          /usr/share/doc/victoryroad/README
-          
-          %changelog
-          * $(date '+%a %b %d %Y') Victory Road Team <support@victoryroad.app> - ${VERSION}-1
-          - Release version ${VERSION}
-          EOF
-          
-          # Build RPM
-          rpmbuild -bb ~/rpmbuild/SPECS/victoryroad.spec
-          cp ~/rpmbuild/RPMS/*/*.rpm victoryroad-${VERSION}-${{ matrix.arch }}.rpm
-      
       - name: Create TAR.GZ archive
         run: |
           # Use the determined version
@@ -313,12 +260,6 @@ jobs:
         with:
           name: victoryroad-deb-${{ matrix.arch }}
           path: "*.deb"
-      
-      - name: Upload RPM Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: victoryroad-rpm-${{ matrix.arch }}
-          path: "*.rpm"
       
       - name: Upload TAR.GZ Artifact
         uses: actions/upload-artifact@v4
@@ -381,10 +322,6 @@ jobs:
           echo "- **x64**: victoryroad_*_x64.deb" >> CHANGELOG.md
           echo "- **ARM64**: victoryroad_*_arm64.deb" >> CHANGELOG.md
           echo "" >> CHANGELOG.md
-          echo "#### RPM Packages (Fedora/RHEL/openSUSE)" >> CHANGELOG.md
-          echo "- **x64**: victoryroad-*-x64.rpm" >> CHANGELOG.md
-          echo "- **ARM64**: victoryroad-*-arm64.rpm" >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
           echo "#### Generic Linux (tar.gz)" >> CHANGELOG.md
           echo "- **x64**: victoryroad-*-linux-x64.tar.gz" >> CHANGELOG.md
           echo "- **ARM64**: victoryroad-*-linux-arm64.tar.gz" >> CHANGELOG.md
@@ -398,14 +335,7 @@ jobs:
           echo 'sudo apt-get install -f' >> CHANGELOG.md
           echo '```' >> CHANGELOG.md
           echo "" >> CHANGELOG.md
-          echo "### Fedora/RHEL" >> CHANGELOG.md
-          echo '```bash' >> CHANGELOG.md
-          echo 'sudo rpm -i victoryroad-*.rpm' >> CHANGELOG.md
-          echo '# Or with yum:' >> CHANGELOG.md
-          echo 'sudo yum install victoryroad-*.rpm' >> CHANGELOG.md
-          echo '```' >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          echo "### Arch Linux" >> CHANGELOG.md
+          echo "### Other Linux Distributions" >> CHANGELOG.md
           echo '```bash' >> CHANGELOG.md
           echo '# Extract the tar.gz and run:' >> CHANGELOG.md
           echo 'tar xzf victoryroad-*-linux-x64.tar.gz' >> CHANGELOG.md
