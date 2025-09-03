@@ -2,18 +2,115 @@ name: Build and Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
+  pull_request:
+    types: [closed]
+    branches:
+      - main
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version number (e.g., 1.0.0)'
-        required: true
-        type: string
+      version_type:
+        description: 'Version bump type (major, minor, patch)'
+        required: false
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
 
 jobs:
+  determine-version:
+    name: Determine Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      version_tag: ${{ steps.version.outputs.version_tag }}
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Calculate Version
+        id: version
+        run: |
+          # Get the last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Last tag: $LAST_TAG"
+          
+          # Remove 'v' prefix for processing
+          LAST_VERSION="${LAST_TAG#v}"
+          
+          # Parse semantic version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$LAST_VERSION"
+          MAJOR=${MAJOR:-0}
+          MINOR=${MINOR:-0}
+          PATCH=${PATCH:-0}
+          
+          # Determine version bump based on context
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # Tagged release - use the tag
+            VERSION="${{ github.ref_name }}"
+            VERSION_TAG="${{ github.ref_name }}"
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # Manual trigger - bump based on input
+            case "${{ github.event.inputs.version_type }}" in
+              major)
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              minor)
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              patch)
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
+            VERSION="${MAJOR}.${MINOR}.${PATCH}"
+            VERSION_TAG="v${VERSION}"
+          else
+            # Auto increment for main branch pushes
+            # Check commit messages for version hints
+            COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"%s" 2>/dev/null || git log --pretty=format:"%s")
+            
+            if echo "$COMMITS" | grep -qiE "breaking|major"; then
+              # Breaking change - major version bump
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              VERSION="${MAJOR}.${MINOR}.${PATCH}"
+            elif echo "$COMMITS" | grep -qiE "feat|feature|add"; then
+              # New feature - minor version bump
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              VERSION="${MAJOR}.${MINOR}.${PATCH}"
+            else
+              # Bug fixes and other changes - patch version bump
+              PATCH=$((PATCH + 1))
+              VERSION="${MAJOR}.${MINOR}.${PATCH}"
+            fi
+            
+            # Add build metadata for non-release builds
+            BUILD_NUM="${{ github.run_number }}"
+            COMMIT_SHA=$(git rev-parse --short HEAD)
+            VERSION="${VERSION}-dev.${BUILD_NUM}+${COMMIT_SHA}"
+            VERSION_TAG="v${VERSION}"
+          fi
+          
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
+          echo "Calculated version: ${VERSION}"
+          echo "Version tag: ${VERSION_TAG}"
+  
   build-windows:
     name: Build Windows
+    needs: determine-version
     runs-on: windows-latest
     strategy:
       matrix:
@@ -59,6 +156,7 @@ jobs:
 
   build-linux:
     name: Build Linux
+    needs: determine-version
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -122,13 +220,15 @@ jobs:
           
           # Create basic documentation
           echo "Victory Road - Pokemon TCG Deck List Generator" > package/usr/share/doc/victoryroad/README
-          echo "Version: ${{ github.event.inputs.version || github.ref_name }}" >> package/usr/share/doc/victoryroad/README
+          echo "Version: ${{ needs.determine-version.outputs.version }}" >> package/usr/share/doc/victoryroad/README
       
       - name: Create DEB package
         run: |
-          # Set version
-          VERSION="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
+          # Use the determined version
+          VERSION="${{ needs.determine-version.outputs.version }}"
+          # Remove 'v' prefix and build metadata for package version
+          VERSION="${VERSION#v}"
+          VERSION="${VERSION%%[-+]*}"  # Remove pre-release and build metadata
           
           # Create debian control structure
           mkdir -p package/DEBIAN
@@ -150,9 +250,11 @@ jobs:
       
       - name: Create RPM package
         run: |
-          # Set version
-          VERSION="${{ github.event.inputs.version || github.ref_name }}"
-          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
+          # Use the determined version
+          VERSION="${{ needs.determine-version.outputs.version }}"
+          # Remove 'v' prefix and build metadata for package version
+          VERSION="${VERSION#v}"
+          VERSION="${VERSION%%[-+]*}"  # Remove pre-release and build metadata
           
           # Create RPM build structure
           mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
@@ -201,7 +303,8 @@ jobs:
       
       - name: Create TAR.GZ archive
         run: |
-          VERSION="${{ github.event.inputs.version || github.ref_name }}"
+          # Use the determined version
+          VERSION="${{ needs.determine-version.outputs.version }}"
           VERSION="${VERSION#v}"
           tar czf victoryroad-${VERSION}-${{ matrix.runtime }}.tar.gz -C publish/${{ matrix.arch }} .
       
@@ -225,9 +328,15 @@ jobs:
 
   create-release:
     name: Create Release
-    needs: [build-windows, build-linux]
+    needs: [determine-version, build-windows, build-linux]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: |
+      (github.event_name == 'push' && contains(github.ref, 'refs/tags/')) ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    permissions:
+      contents: write
+      packages: write
     
     steps:
       - uses: actions/checkout@v4
@@ -244,7 +353,8 @@ jobs:
         run: |
           # Get the previous tag
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          CURRENT_TAG="${{ github.event.inputs.version || github.ref_name }}"
+          CURRENT_VERSION="${{ needs.determine-version.outputs.version }}"
+          CURRENT_TAG="${{ needs.determine-version.outputs.version_tag }}"
           
           echo "## What's Changed" > CHANGELOG.md
           echo "" >> CHANGELOG.md
@@ -310,15 +420,14 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.event.inputs.version || github.ref_name }}
-          name: Victory Road ${{ github.event.inputs.version || github.ref_name }}
+          tag_name: ${{ needs.determine-version.outputs.version_tag }}
+          name: Victory Road ${{ needs.determine-version.outputs.version }}
           body: ${{ steps.changelog.outputs.changelog }}
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(needs.determine-version.outputs.version, '-') }}
           files: |
             artifacts/**/*.zip
             artifacts/**/*.deb
             artifacts/**/*.rpm
             artifacts/**/*.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
