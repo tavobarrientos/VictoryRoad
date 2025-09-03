@@ -43,7 +43,29 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public DateTime? Date
     {
         get => _date;
-        set => SetProperty(ref _date, value);
+        set 
+        { 
+            // Validate birth date is not too recent (must be at least 5 years ago)
+            if (value.HasValue && value.Value > DateTime.Now.AddYears(-5))
+            {
+                ValidationMessage = "Birth date must be at least 5 years ago.";
+                IsValid = false;
+                return;
+            }
+            
+            // Validate birth date is not in the future
+            if (value.HasValue && value.Value > DateTime.Now)
+            {
+                ValidationMessage = "Birth date cannot be in the future.";
+                IsValid = false;
+                return;
+            }
+            
+            if (SetProperty(ref _date, value))
+            {
+                UpdateDivisionFromBirthDate();
+            }
+        }
     }
     
     public string Division
@@ -220,6 +242,56 @@ public class MainWindowViewModel : INotifyPropertyChanged
         {
             ValidationMessage = $"Error updating card count: {ex.Message}";
             IsValid = false;
+        }
+    }
+    
+    private void UpdateDivisionFromBirthDate()
+    {
+        if (!Date.HasValue)
+        {
+            Division = string.Empty;
+            return;
+        }
+        
+        var birthDate = Date.Value;
+        var currentDate = DateTime.Now;
+        
+        // Determine which championship season we're in
+        // Championship seasons run from July 1st to June 30th of the following year
+        DateTime seasonStartDate;
+        if (currentDate.Month >= 7) // July or later
+        {
+            // Current season started July 1st of this year
+            seasonStartDate = new DateTime(currentDate.Year, 7, 1);
+        }
+        else
+        {
+            // Current season started July 1st of last year
+            seasonStartDate = new DateTime(currentDate.Year - 1, 7, 1);
+        }
+        
+        // Calculate age at the start of the championship season
+        int ageAtSeasonStart = seasonStartDate.Year - birthDate.Year;
+        if (birthDate.Date > seasonStartDate.AddYears(-ageAtSeasonStart))
+        {
+            ageAtSeasonStart--;
+        }
+        
+        // Pokemon TCG age divisions based on age at season start:
+        // Junior: 12 and under (born after season start - 13 years)
+        // Senior: 13-15 years old (born between season start - 16 years and season start - 13 years)
+        // Masters: 16 and older (born before season start - 16 years)
+        if (ageAtSeasonStart <= 12)
+        {
+            Division = "Junior";
+        }
+        else if (ageAtSeasonStart >= 13 && ageAtSeasonStart <= 15)
+        {
+            Division = "Senior";
+        }
+        else if (ageAtSeasonStart >= 16)
+        {
+            Division = "Masters";
         }
     }
     

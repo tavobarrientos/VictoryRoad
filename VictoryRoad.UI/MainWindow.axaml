@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:VictoryRoad.UI.ViewModels"
         xmlns:conv="using:VictoryRoad.UI.Converters"
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="VictoryRoad.UI.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -47,7 +48,7 @@
             
             <StackPanel Grid.Row="0" Grid.Column="2" Margin="5,0,0,10">
                 <TextBlock Text="Date:" Margin="0,0,0,5"/>
-                <DatePicker SelectedDate="{Binding Date}"/>
+                <DatePicker SelectedDate="{Binding Date, Converter={x:Static conv:DateTimeToDateTimeOffsetConverter.Instance}}"/>
             </StackPanel>
             
             <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
