@@ -1,0 +1,341 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <Styles.Resources>
+        <!-- Color Palette -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#3B82F6"/>
+        <SolidColorBrush x:Key="SecondaryBrush" Color="#8B5CF6"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#EC4899"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#10B981"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#EF4444"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="#F59E0B"/>
+        
+        <!-- Pokemon Type Colors -->
+        <SolidColorBrush x:Key="PokemonBrush" Color="#4F46E5"/>
+        <SolidColorBrush x:Key="TrainerBrush" Color="#059669"/>
+        <SolidColorBrush x:Key="EnergyBrush" Color="#DC2626"/>
+        
+        <!-- Gradients -->
+        <LinearGradientBrush x:Key="HeaderGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#667EEA" Offset="0"/>
+            <GradientStop Color="#764BA2" Offset="1"/>
+        </LinearGradientBrush>
+        
+        <LinearGradientBrush x:Key="PokemonGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#6366F1" Offset="0"/>
+            <GradientStop Color="#8B5CF6" Offset="1"/>
+        </LinearGradientBrush>
+        
+        <LinearGradientBrush x:Key="TrainerGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#10B981" Offset="0"/>
+            <GradientStop Color="#059669" Offset="1"/>
+        </LinearGradientBrush>
+        
+        <LinearGradientBrush x:Key="EnergyGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#F59E0B" Offset="0"/>
+            <GradientStop Color="#DC2626" Offset="1"/>
+        </LinearGradientBrush>
+    </Styles.Resources>
+    
+    <!-- Modern Card Style -->
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="BoxShadow" Value="0 4 6 0 #1F000000"/>
+        <Setter Property="Margin" Value="8"/>
+    </Style>
+    
+    <Style Selector="Border.card:pointerover">
+        <Setter Property="BoxShadow" Value="0 10 15 0 #3F000000"/>
+    </Style>
+    
+    <!-- Enhanced Button Style -->
+    <Style Selector="Button.modern">
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="16,10"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Duration="0:0:0.2" Property="Background"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.modern:pointerover">
+        <Setter Property="Background" Value="#2563EB"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="Button.modern:pressed">
+        <Setter Property="Background" Value="#1D4ED8"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Opacity" Value="0.9"/>
+    </Style>
+    
+    <!-- Success Button -->
+    <Style Selector="Button.success">
+        <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="20,12"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Duration="0:0:0.2" Property="Background"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.success:pointerover">
+        <Setter Property="Background" Value="#059669"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="Button.success:pressed">
+        <Setter Property="Background" Value="#047857"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Opacity" Value="0.9"/>
+    </Style>
+    
+    <!-- Danger Button -->
+    <Style Selector="Button.danger">
+        <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Duration="0:0:0.2" Property="Background"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.danger:pointerover">
+        <Setter Property="Background" Value="#DC2626"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="Button.danger:pressed">
+        <Setter Property="Background" Value="#B91C1C"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Opacity" Value="0.9"/>
+    </Style>
+    
+    <!-- Add Button Style -->
+    <Style Selector="Button.add-btn">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#059669"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="BorderBrush" Value="#059669"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Duration="0:0:0.2" Property="Background"/>
+                <BrushTransition Duration="0:0:0.2" Property="Foreground"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Button.add-btn:pointerover">
+        <Setter Property="Background" Value="#059669"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="Button.add-btn:pressed">
+        <Setter Property="Background" Value="#047857"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <!-- Enhanced TextBox Style -->
+    <Style Selector="TextBox.modern">
+        <Setter Property="BorderBrush" Value="#E5E7EB"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Duration="0:0:0.2" Property="BorderBrush"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector="TextBox.modern:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+    </Style>
+    
+    <!-- ComboBox Style -->
+    <Style Selector="ComboBox.modern">
+        <Setter Property="BorderBrush" Value="#E5E7EB"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#1F2937"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Duration="0:0:0.2" Property="BorderBrush"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector="ComboBox.modern:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#1F2937"/>
+    </Style>
+    
+    <Style Selector="ComboBox.modern:pointerover">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#1F2937"/>
+    </Style>
+    
+    <!-- DatePicker Style -->
+    <Style Selector="DatePicker.modern">
+        <Setter Property="BorderBrush" Value="#E5E7EB"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#1F2937"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Duration="0:0:0.2" Property="BorderBrush"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector="DatePicker.modern:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#1F2937"/>
+    </Style>
+    
+    <Style Selector="DatePicker.modern:pointerover">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#1F2937"/>
+    </Style>
+    
+    <!-- NumericUpDown Style -->
+    <Style Selector="NumericUpDown.modern">
+        <Setter Property="BorderBrush" Value="#E5E7EB"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#1F2937"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Duration="0:0:0.2" Property="BorderBrush"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector="NumericUpDown.modern:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#1F2937"/>
+    </Style>
+    
+    <Style Selector="NumericUpDown.modern:pointerover">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Foreground" Value="#1F2937"/>
+    </Style>
+    
+    <!-- Card Item Style -->
+    <Style Selector="Border.card-item">
+        <Setter Property="Background" Value="#F9FAFB"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="12"/>
+        <Setter Property="Margin" Value="0,4"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Duration="0:0:0.2" Property="Background"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector="Border.card-item:pointerover">
+        <Setter Property="Background" Value="#F3F4F6"/>
+    </Style>
+    
+    <!-- Section Header Style -->
+    <Style Selector="Border.section-header">
+        <Setter Property="CornerRadius" Value="8,8,0,0"/>
+        <Setter Property="Height" Value="48"/>
+        <Setter Property="Padding" Value="16,0"/>
+    </Style>
+    
+    <!-- Tab Style Enhancement -->
+    <Style Selector="TabItem">
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="20,12"/>
+        <Setter Property="Margin" Value="0,0,8,0"/>
+        <Setter Property="Foreground" Value="#6B7280"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Duration="0:0:0.2" Property="Foreground"/>
+                <BrushTransition Duration="0:0:0.2" Property="Background"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    
+    <Style Selector="TabItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#F3F4F6"/>
+    </Style>
+    
+    <Style Selector="TabItem:selected">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,3"/>
+    </Style>
+    
+    <Style Selector="TabItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="TextDecoration" Value="None"/>
+        <Setter Property="Background" Value="White"/>
+    </Style>
+    
+    <!-- Title Style -->
+    <Style Selector="TextBlock.app-title">
+        <Setter Property="FontSize" Value="32"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground">
+            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                <GradientStop Color="#667EEA" Offset="0"/>
+                <GradientStop Color="#764BA2" Offset="1"/>
+            </LinearGradientBrush>
+        </Setter>
+    </Style>
+    
+    <!-- Label Style -->
+    <Style Selector="TextBlock.field-label">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#4B5563"/>
+        <Setter Property="Margin" Value="0,0,0,6"/>
+    </Style>
+    
+    <!-- Stat Badge Style -->
+    <Style Selector="Border.stat-badge">
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Padding" Value="16,8"/>
+    </Style>
+</Styles>
