@@ -2,6 +2,8 @@
 
 ## Overview
 
+![Victory Road Screenshot](/img/capture.png)
+
 Victory Road is a desktop application designed to help Pokemon Trading Card Game players create and manage their deck lists for official Play! Pokemon tournaments. The application allows players to input their 60-card decks and export them as properly formatted PDF deck lists that comply with tournament requirements.
 
 ## Features
