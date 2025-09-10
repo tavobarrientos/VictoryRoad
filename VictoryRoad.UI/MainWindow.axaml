@@ -192,12 +192,11 @@
                                                                             <ColumnDefinition Width="36"/>
                                                                         </Grid.ColumnDefinitions>
                                                                         
-                                                                        <NumericUpDown Grid.Column="0" 
-                                                                                       Value="{Binding Quantity, Mode=TwoWay}" 
-                                                                                       Minimum="1" Maximum="4" 
-                                                                                       ShowButtonSpinner="True"
-                                                                                       FormatString="0" Increment="1"
-                                                                                       Classes="modern"/>
+                                                                        <TextBox Grid.Column="0" 
+                                                                                 Text="{Binding Quantity, Mode=TwoWay}" 
+                                                                                 Classes="modern"
+                                                                                 MaxLength="1"
+                                                                                 Watermark="1-4"/>
                                                                         
                                                                         <TextBox Grid.Column="1" Text="{Binding Name}" 
                                                                                  Margin="8,0" Classes="modern"
@@ -266,12 +265,11 @@
                                                                             <ColumnDefinition Width="36"/>
                                                                         </Grid.ColumnDefinitions>
                                                                         
-                                                                        <NumericUpDown Grid.Column="0" 
-                                                                                       Value="{Binding Quantity, Mode=TwoWay}" 
-                                                                                       Minimum="1" Maximum="4" 
-                                                                                       ShowButtonSpinner="True"
-                                                                                       FormatString="0" Increment="1"
-                                                                                       Classes="modern"/>
+                                                                        <TextBox Grid.Column="0" 
+                                                                                 Text="{Binding Quantity, Mode=TwoWay}" 
+                                                                                 Classes="modern"
+                                                                                 MaxLength="1"
+                                                                                 Watermark="1-4"/>
                                                                         
                                                                         <TextBox Grid.Column="1" Text="{Binding Name}" 
                                                                                  Margin="8,0" Classes="modern"
@@ -340,12 +338,11 @@
                                                                             <ColumnDefinition Width="36"/>
                                                                         </Grid.ColumnDefinitions>
                                                                         
-                                                                        <NumericUpDown Grid.Column="0" 
-                                                                                       Value="{Binding Quantity, Mode=TwoWay}" 
-                                                                                       Minimum="1" Maximum="99" 
-                                                                                       ShowButtonSpinner="True"
-                                                                                       FormatString="0" Increment="1"
-                                                                                       Classes="modern"/>
+                                                                        <TextBox Grid.Column="0" 
+                                                                                 Text="{Binding Quantity, Mode=TwoWay}" 
+                                                                                 Classes="modern"
+                                                                                 MaxLength="2"
+                                                                                 Watermark="1-99"/>
                                                                         
                                                                         <TextBox Grid.Column="1" Text="{Binding Name}" 
                                                                                  Margin="8,0" Classes="modern"
