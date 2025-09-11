@@ -80,7 +80,8 @@ public abstract class PdfFormBuilder
         FillCardSection(canvas, deck.Pokemon, PokemonStartY, false);
         FillCardSection(canvas, deck.Trainers, TrainerStartY, true); // true = trainer cards (name only)
         FillCardSection(canvas, deck.Energy, EnergyStartY, false);
-        
+        FillVictoryRoadInfo(canvas);
+
         canvas.EndText();
         
         stamper.Close();
@@ -88,7 +89,15 @@ public abstract class PdfFormBuilder
         
         return output.ToArray();
     }
-    
+
+    private void FillVictoryRoadInfo(PdfContentByte canvas)
+    {
+        var infoText = $"Victory Road - http://www.barrientos.io/VictoryRoad";
+        var baseFont = BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+        canvas.SetFontAndSize(baseFont, 6);
+        canvas.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, infoText, 580, 10, 0);
+    }
+
     private void FillPlayerInfo(PdfContentByte canvas, Deck deck)
     {
         if (!string.IsNullOrEmpty(deck.PlayerName))
