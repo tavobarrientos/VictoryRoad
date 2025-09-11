@@ -5,9 +5,12 @@ import Features from '../components/Features.astro';
 import Screenshots from '../components/Screenshots.astro';
 import Download from '../components/Download.astro';
 import Footer from '../components/Footer.astro';
+import GithubRibbon from '../components/GithubRibbon.astro';
+import siteConfig from '../config/site.json';
 ---
 
 <Layout title="Victory Road - Pokemon TCG Deck List Generator">
+  <GithubRibbon href={siteConfig.github.url} />
   <Hero />
   <Features />
   <Screenshots />
