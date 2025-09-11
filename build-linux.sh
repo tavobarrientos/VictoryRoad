@@ -1,6 +1,11 @@
 #!/bin/bash
 
+# Victory Road Build Script for Linux
+# Repository: https://github.com/tavobarrientos/VictoryRoad
+
 echo "Building Victory Road for Linux..."
+echo "Repository: https://github.com/tavobarrientos/VictoryRoad"
+echo ""
 
 # Ensure PDF templates exist
 echo "Checking PDF templates..."
@@ -46,6 +51,10 @@ Exec=VictoryRoad.UI
 Icon=victoryroad
 Type=Application
 Categories=Game;CardGame;
+X-AppImage-Version=1.0.0
+X-AppImage-Arch=x86_64
+X-AppImage-Name=Victory Road
+X-AppImage-HomePage=https://github.com/tavobarrientos/VictoryRoad
 EOF
 
 # Create a simple icon (you can replace this with a proper icon later)

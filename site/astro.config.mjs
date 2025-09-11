@@ -4,7 +4,7 @@ import tailwind from '@astrojs/tailwind';
 export default defineConfig({
   integrations: [tailwind()],
   site: 'https://barrientos.io',
-  base: '/victory-road',
+  base: '/VictoryRoad',
   output: 'static',
   build: {
     assets: 'assets'

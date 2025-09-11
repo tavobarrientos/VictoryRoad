@@ -71,7 +71,7 @@ Version: ${VERSION}
 A desktop application for creating and managing Pokemon TCG deck lists
 for official Play! Pokemon tournaments.
 
-Homepage: https://github.com/yourusername/victory-road
+Homepage: https://github.com/tavobarrientos/VictoryRoad
 License: MIT
 EOF
 
@@ -90,7 +90,7 @@ Description: Pokemon TCG Deck List Generator
  Pokemon Trading Card Game deck lists for official tournaments.
  Supports manual deck entry, import from TCG Live, and PDF export.
 Depends: libicu-dev
-Homepage: https://github.com/yourusername/victory-road
+Homepage: https://github.com/tavobarrientos/VictoryRoad
 EOF
 
 # Add post-install script
@@ -125,7 +125,7 @@ Version:        ${VERSION}
 Release:        1%{?dist}
 Summary:        Pokemon TCG Deck List Generator
 License:        MIT
-URL:            https://github.com/yourusername/victory-road
+URL:            https://github.com/tavobarrientos/VictoryRoad
 Source0:        victoryroad-${VERSION}.tar.gz
 
 BuildArch:      ${RPM_ARCH}
@@ -184,7 +184,7 @@ pkgver=${VERSION}
 pkgrel=1
 pkgdesc="Pokemon TCG Deck List Generator"
 arch=('${ARCH}')
-url="https://github.com/yourusername/victory-road"
+url="https://github.com/tavobarrientos/VictoryRoad"
 license=('MIT')
 depends=('icu')
 source=("victoryroad-\${pkgver}-${RUNTIME}.tar.gz")
