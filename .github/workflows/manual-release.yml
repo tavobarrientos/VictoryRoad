@@ -42,6 +42,17 @@ jobs:
             runner: ubuntu-latest
             runtime: linux-arm64
             arch: arm64
+          # Debian specific builds
+          - os: Debian
+            runner: ubuntu-latest
+            runtime: linux-x64
+            arch: x64
+            debian: true
+          - os: Debian
+            runner: ubuntu-latest
+            runtime: linux-arm64
+            arch: arm64
+            debian: true
     
     steps:
       - uses: actions/checkout@v4
@@ -77,6 +88,52 @@ jobs:
           chmod +x publish/VictoryRoad.UI
           tar czf VictoryRoad-${{ matrix.os }}-${{ matrix.arch }}-v${{ github.event.inputs.version }}.tar.gz -C publish .
       
+      - name: Create Debian Package
+        if: matrix.os == 'Debian'
+        run: |
+          # Create debian package structure
+          PACKAGE_NAME="victoryroad"
+          VERSION="${{ github.event.inputs.version }}"
+          ARCH="${{ matrix.arch == 'x64' && 'amd64' || matrix.arch }}"
+          DEB_DIR="${PACKAGE_NAME}_${VERSION}_${ARCH}"
+          
+          mkdir -p "${DEB_DIR}/DEBIAN"
+          mkdir -p "${DEB_DIR}/usr/bin"
+          mkdir -p "${DEB_DIR}/usr/share/applications"
+          mkdir -p "${DEB_DIR}/usr/share/pixmaps"
+          
+          # Copy executable
+          cp publish/VictoryRoad.UI "${DEB_DIR}/usr/bin/victoryroad"
+          chmod +x "${DEB_DIR}/usr/bin/victoryroad"
+          
+          # Create control file
+          cat > "${DEB_DIR}/DEBIAN/control" <<EOF
+          Package: ${PACKAGE_NAME}
+          Version: ${VERSION}
+          Section: utils
+          Priority: optional
+          Architecture: ${ARCH}
+          Maintainer: Victory Road Team <support@victoryroad.app>
+          Description: Victory Road - Tournament Management Application
+           A comprehensive tournament management system for organizing
+           and running competitive gaming events.
+          EOF
+          
+          # Create desktop entry
+          cat > "${DEB_DIR}/usr/share/applications/victoryroad.desktop" <<EOF
+          [Desktop Entry]
+          Name=Victory Road
+          Comment=Tournament Management Application
+          Exec=/usr/bin/victoryroad
+          Terminal=false
+          Type=Application
+          Categories=Game;Utility;
+          EOF
+          
+          # Build debian package
+          dpkg-deb --build "${DEB_DIR}"
+          mv "${DEB_DIR}.deb" "VictoryRoad-${{ matrix.os }}-${{ matrix.arch }}-v${{ github.event.inputs.version }}.deb"
+      
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -84,6 +141,7 @@ jobs:
           path: |
             *.zip
             *.tar.gz
+            *.deb
 
   release:
     name: Create Release
@@ -129,6 +187,10 @@ jobs:
           echo "- **x64 (64-bit Intel/AMD)**: VictoryRoad-Linux-x64-v${VERSION}.tar.gz" >> RELEASE_NOTES.md
           echo "- **ARM64**: VictoryRoad-Linux-arm64-v${VERSION}.tar.gz" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
+          echo "#### Debian/Ubuntu (.deb packages)" >> RELEASE_NOTES.md
+          echo "- **x64 (64-bit Intel/AMD)**: VictoryRoad-Debian-x64-v${VERSION}.deb" >> RELEASE_NOTES.md
+          echo "- **ARM64**: VictoryRoad-Debian-arm64-v${VERSION}.deb" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
           echo "### Installation" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "**Windows**: Extract the ZIP file and run \`VictoryRoad.UI.exe\`" >> RELEASE_NOTES.md
@@ -138,6 +200,15 @@ jobs:
           echo 'tar xzf VictoryRoad-Linux-*.tar.gz' >> RELEASE_NOTES.md
           echo 'chmod +x VictoryRoad.UI' >> RELEASE_NOTES.md
           echo './VictoryRoad.UI' >> RELEASE_NOTES.md
+          echo '```' >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "**Debian/Ubuntu**: Install the .deb package:" >> RELEASE_NOTES.md
+          echo '```bash' >> RELEASE_NOTES.md
+          echo 'sudo dpkg -i VictoryRoad-Debian-*.deb' >> RELEASE_NOTES.md
+          echo '# Or using apt:' >> RELEASE_NOTES.md
+          echo 'sudo apt install ./VictoryRoad-Debian-*.deb' >> RELEASE_NOTES.md
+          echo '# Run the application:' >> RELEASE_NOTES.md
+          echo 'victoryroad' >> RELEASE_NOTES.md
           echo '```' >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "### Requirements" >> RELEASE_NOTES.md

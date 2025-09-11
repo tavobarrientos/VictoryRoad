@@ -1,0 +1,144 @@
+---
+import siteConfig from '../config/site.json';
+
+const downloads = [
+  {
+    platform: "Windows",
+    variants: [
+      { name: "x64 (64-bit Intel/AMD)", file: "VictoryRoad-Windows-x64.zip", recommended: true },
+      { name: "x86 (32-bit)", file: "VictoryRoad-Windows-x86.zip" },
+      { name: "ARM64", file: "VictoryRoad-Windows-arm64.zip" }
+    ],
+    icon: "windows",
+    gradient: "bg-primary"
+  },
+  {
+    platform: "Linux",
+    variants: [
+      { name: "Debian/Ubuntu x64", file: "victoryroad_*_x64.deb", recommended: true },
+      { name: "Debian/Ubuntu ARM64", file: "victoryroad_*_arm64.deb" },
+      { name: "Generic x64", file: "victoryroad-*-linux-x64.tar.gz" },
+      { name: "Generic ARM64", file: "victoryroad-*-linux-arm64.tar.gz" }
+    ],
+    icon: "linux",
+    gradient: "bg-trainer-gradient"
+  }
+];
+---
+
+<section id="download" class="py-24 bg-white">
+  <div class="container mx-auto px-6">
+    <!-- Section Header -->
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">
+        Download Victory Road
+      </h2>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+        Available for Windows and Linux. No runtime installation required.
+      </p>
+      
+      <!-- Quick download button -->
+      <a href={siteConfig.links.latestRelease} 
+         target="_blank"
+         rel="noopener noreferrer"
+         class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-success hover:bg-green-600 rounded-lg transition-all transform hover:scale-105 card-shadow-lg">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+        </svg>
+        Download Latest Release
+      </a>
+    </div>
+
+    <!-- Download Options -->
+    <div class="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+      {downloads.map((platform) => (
+        <div class="bg-white rounded-xl card-shadow-lg overflow-hidden hover:shadow-2xl transition-shadow">
+          <!-- Platform Header -->
+          <div class={`${platform.gradient} p-6 text-white`}>
+            <div class="flex items-center space-x-3">
+              {platform.icon === 'windows' && (
+                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 3h8v8H3V3m10 0h8v8h-8V3M3 13h8v8H3v-8m10 0h8v8h-8v-8z"/>
+                </svg>
+              )}
+              {platform.icon === 'linux' && (
+                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L2 7v10c0 5.5 3.8 10.7 9 12 1.2-.3 2.3-.8 3.3-1.5A6 6 0 0 1 12 23c-4.4-1-8-4.9-8-9V8.3l8-3.7 8 3.7V13a6 6 0 0 1 4 1.8V7l-10-5M15 18v2h8v-2h-8m0-3v2h8v-2h-8z"/>
+                </svg>
+              )}
+              <h3 class="text-2xl font-bold">{platform.platform}</h3>
+            </div>
+          </div>
+          
+          <!-- Download Variants -->
+          <div class="p-6">
+            <div class="space-y-3">
+              {platform.variants.map((variant) => (
+                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div class="flex items-center space-x-3">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                    </svg>
+                    <div>
+                      <span class="font-medium text-gray-800">{variant.name}</span>
+                      {variant.recommended && (
+                        <span class="ml-2 px-2 py-1 bg-success/10 text-success text-xs font-semibold rounded-full">
+                          Recommended
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span class="text-sm text-gray-500">{variant.file}</span>
+                </div>
+              ))}
+            </div>
+            
+            <!-- Platform-specific instructions -->
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+              <p class="text-sm text-gray-600">
+                {platform.platform === 'Windows' && (
+                  <>
+                    <strong>Installation:</strong> Extract the ZIP file and run <code class="px-1 py-0.5 bg-gray-200 rounded">VictoryRoad.UI.exe</code>
+                  </>
+                )}
+                {platform.platform === 'Linux' && (
+                  <>
+                    <strong>Debian/Ubuntu:</strong> <code class="px-1 py-0.5 bg-gray-200 rounded">sudo dpkg -i victoryroad_*.deb</code><br/>
+                    <strong>Generic:</strong> Extract and run <code class="px-1 py-0.5 bg-gray-200 rounded">./VictoryRoad.UI</code>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- System Requirements -->
+    <div class="mt-16 max-w-3xl mx-auto">
+      <div class="bg-gray-50 rounded-xl p-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">System Requirements</h3>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h4 class="font-semibold text-gray-700 mb-2">Minimum Requirements</h4>
+            <ul class="space-y-1 text-sm text-gray-600">
+              <li>• Windows 10 / Linux (glibc 2.17+)</li>
+              <li>• 2GB RAM</li>
+              <li>• 100MB disk space</li>
+              <li>• .NET runtime included (self-contained)</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-700 mb-2">Included Features</h4>
+            <ul class="space-y-1 text-sm text-gray-600">
+              <li>• All PDF templates pre-installed</li>
+              <li>• No internet connection required</li>
+              <li>• Automatic updates available</li>
+              <li>• Full offline functionality</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

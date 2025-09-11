@@ -6,10 +6,20 @@ on:
       - main
     tags:
       - 'v*'
+    paths-ignore:
+      - 'site/**'
+      - 'img/**'
+      - 'README.md'
+      - '.github/workflows/deploy-site.yml'
   pull_request:
     types: [closed]
     branches:
       - main
+    paths-ignore:
+      - 'site/**'
+      - 'img/**'
+      - 'README.md'
+      - '.github/workflows/deploy-site.yml'
   workflow_dispatch:
     inputs:
       version_type:

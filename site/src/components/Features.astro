@@ -1,0 +1,106 @@
+---
+const features = [
+  {
+    title: "Manual Deck Entry",
+    description: "Easily input your 60-card deck with support for Pokemon, Trainer, and Energy cards",
+    icon: "edit",
+    gradient: "bg-pokemon-gradient"
+  },
+  {
+    title: "Import from TCG Live",
+    description: "Directly import deck lists from Pokemon TCG Live format for quick setup",
+    icon: "import",
+    gradient: "bg-trainer-gradient"
+  },
+  {
+    title: "Automatic Validation",
+    description: "Real-time deck validation ensuring exactly 60 cards and tournament compliance",
+    icon: "check",
+    gradient: "bg-energy-gradient"
+  },
+  {
+    title: "PDF Export",
+    description: "Generate official Play! Pokemon deck list PDFs ready for tournaments",
+    icon: "pdf",
+    gradient: "bg-header-gradient"
+  },
+  {
+    title: "Multiple Divisions",
+    description: "Support for Junior, Senior, and Masters divisions with proper formatting",
+    icon: "users",
+    gradient: "bg-pokemon-gradient"
+  },
+  {
+    title: "Format Support",
+    description: "Compatible with both Standard and Expanded format requirements",
+    icon: "layers",
+    gradient: "bg-trainer-gradient"
+  }
+];
+---
+
+<section id="features" class="py-24 bg-white">
+  <div class="container mx-auto px-6">
+    <!-- Section Header -->
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">
+        Powerful Features
+      </h2>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+        Everything you need to create tournament-ready deck lists
+      </p>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {features.map((feature) => (
+        <div class="group relative bg-white rounded-xl p-8 card-shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl overflow-hidden">
+          <!-- Background gradient on hover -->
+          <div class="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 {feature.gradient}"></div>
+          
+          <!-- Icon -->
+          <div class={`w-16 h-16 rounded-lg ${feature.gradient} flex items-center justify-center mb-6 transform transition-transform group-hover:scale-110`}>
+            {feature.icon === 'edit' && (
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            )}
+            {feature.icon === 'import' && (
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              </svg>
+            )}
+            {feature.icon === 'check' && (
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            )}
+            {feature.icon === 'pdf' && (
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+              </svg>
+            )}
+            {feature.icon === 'users' && (
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+            )}
+            {feature.icon === 'layers' && (
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+              </svg>
+            )}
+          </div>
+          
+          <!-- Content -->
+          <h3 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-primary transition-colors">
+            {feature.title}
+          </h3>
+          <p class="text-gray-600 leading-relaxed">
+            {feature.description}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

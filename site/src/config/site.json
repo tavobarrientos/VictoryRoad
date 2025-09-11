@@ -1,0 +1,17 @@
+{
+  "github": {
+    "owner": "tavobarrientos",
+    "repo": "VictoryRoad",
+    "url": "https://github.com/tavobarrientos/VictoryRoad"
+  },
+  "social": {
+    "github": "https://github.com/tavobarrientos/VictoryRoad"
+  },
+  "links": {
+    "releases": "https://github.com/tavobarrientos/VictoryRoad/releases",
+    "latestRelease": "https://github.com/tavobarrientos/VictoryRoad/releases/latest",
+    "issues": "https://github.com/tavobarrientos/VictoryRoad/issues",
+    "wiki": "https://github.com/tavobarrientos/VictoryRoad/wiki",
+    "sourceCode": "https://github.com/tavobarrientos/VictoryRoad"
+  }
+}
