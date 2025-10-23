@@ -8,7 +8,10 @@ public class DeckValidator : IDeckValidator
     {
         "Fire Energy", "Water Energy", "Grass Energy", "Lightning Energy",
         "Psychic Energy", "Fighting Energy", "Darkness Energy", "Metal Energy",
-        "Fairy Energy", "Dragon Energy", "Colorless Energy"
+        "Fairy Energy", "Dragon Energy", "Colorless Energy",
+        "Basic {R} Energy", "Basic {F} Energy", "Basic {D} Energy",
+        "Basic {G} Energy", "Basic {L} Energy",
+        "Basic {M} Energy", "Basic {P} Energy", "Basic {W} Energy"
     };
     
     public ValidationResult ValidateDeck(Deck deck)

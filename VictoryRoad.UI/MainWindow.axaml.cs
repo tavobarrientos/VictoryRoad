@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using VictoryRoad.UI.ViewModels;
+using VictoryRoad.UI.Views;
 
 namespace VictoryRoad.UI;
 
@@ -14,12 +15,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        
+
         var viewModel = new MainWindowViewModel();
         DataContext = viewModel;
-        
+
         viewModel.ShowSaveFileDialog = ShowSaveFileDialog;
         viewModel.ShowMessageBox = ShowMessageBox;
+        viewModel.ShowPdfPreview = ShowPdfPreview;
     }
     
     private void ImportDeck_Click(object? sender, RoutedEventArgs e)
@@ -60,11 +62,16 @@ public partial class MainWindow : Window
         ViewModel.Validate();
     }
     
+    private async void PreviewPdf_Click(object? sender, RoutedEventArgs e)
+    {
+        await ViewModel.PreviewPdf();
+    }
+
     private async void ExportPdf_Click(object? sender, RoutedEventArgs e)
     {
         await ViewModel.ExportPdf();
     }
-    
+
     private async Task<IStorageFile?> ShowSaveFileDialog()
     {
         var options = new FilePickerSaveOptions
@@ -84,6 +91,12 @@ public partial class MainWindow : Window
         return await StorageProvider.SaveFilePickerAsync(options);
     }
     
+    private async Task ShowPdfPreview(byte[] pdfBytes, string suggestedFileName)
+    {
+        var previewWindow = new PdfPreviewWindow(pdfBytes, suggestedFileName);
+        await previewWindow.ShowDialog(this);
+    }
+
     private async Task ShowMessageBox(string title, string message)
     {
         var messageBox = new Window
@@ -97,14 +110,14 @@ public partial class MainWindow : Window
                 Margin = new Avalonia.Thickness(20),
                 Children =
                 {
-                    new TextBlock 
-                    { 
-                        Text = message, 
+                    new TextBlock
+                    {
+                        Text = message,
                         TextWrapping = Avalonia.Media.TextWrapping.Wrap,
                         Margin = new Avalonia.Thickness(0, 0, 0, 20)
                     },
-                    new Button 
-                    { 
+                    new Button
+                    {
                         Content = "OK",
                         HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
                         Width = 100
@@ -112,13 +125,13 @@ public partial class MainWindow : Window
                 }
             }
         };
-        
+
         var button = (messageBox.Content as StackPanel)?.Children.OfType<Button>().First();
         if (button != null)
         {
             button.Click += (_, _) => messageBox.Close();
         }
-        
+
         await messageBox.ShowDialog(this);
     }
 }

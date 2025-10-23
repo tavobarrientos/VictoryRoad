@@ -76,9 +76,8 @@ public abstract class PdfFormBuilder
         // Fill player information
         FillPlayerInfo(canvas, deck);
         
-        // Fill card sections
         FillCardSection(canvas, deck.Pokemon, PokemonStartY, false);
-        FillCardSection(canvas, deck.Trainers, TrainerStartY, true); // true = trainer cards (name only)
+        FillCardSection(canvas, deck.Trainers, TrainerStartY, !deck.ShowTrainerSetInfo);
         FillCardSection(canvas, deck.Energy, EnergyStartY, false);
         FillVictoryRoadInfo(canvas);
 

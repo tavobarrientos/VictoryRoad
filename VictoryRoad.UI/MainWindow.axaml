@@ -97,8 +97,8 @@
                             </StackPanel>
                             
                             <StackPanel Grid.Row="0" Grid.Column="2" Margin="16,0,0,16">
-                                <TextBlock Classes="field-label" Text="Date"/>
-                                <DatePicker Classes="modern" 
+                                <TextBlock Classes="field-label" Text="Birth Date"/>
+                                <DatePicker Classes="modern"
                                             SelectedDate="{Binding Date, Converter={x:Static conv:DateTimeToDateTimeOffsetConverter.Instance}}"/>
                             </StackPanel>
                             
@@ -116,13 +116,21 @@
                             
                             <StackPanel Grid.Row="1" Grid.Column="1" Margin="8,0,8,0">
                                 <TextBlock Classes="field-label" Text="Format"/>
-                                <ComboBox Classes="modern" SelectedItem="{Binding Format}" 
+                                <ComboBox Classes="modern" SelectedItem="{Binding Format}"
                                           HorizontalAlignment="Stretch">
                                     <ComboBox.Items>
                                         <x:String>Standard</x:String>
                                         <x:String>Expanded</x:String>
                                     </ComboBox.Items>
                                 </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="16,0,0,0">
+                                <TextBlock Classes="field-label" Text="Trainer Card Format"/>
+                                <CheckBox IsChecked="{Binding ShowTrainerSetInfo}"
+                                          Content="Include Set Info"
+                                          VerticalAlignment="Center"
+                                          Margin="0,6,0,0"/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -431,16 +439,21 @@
                         
                         <!-- Action Buttons -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
-                            <Button Classes="modern" Content="🗑️ Clear All" 
-                                    Click="ClearAll_Click" 
+                            <Button Classes="modern" Content="🗑️ Clear All"
+                                    Click="ClearAll_Click"
                                     Background="#6B7280"/>
-                            
-                            <Button Classes="modern" Content="✓ Validate" 
-                                    Click="Validate_Click" 
+
+                            <Button Classes="modern" Content="✓ Validate"
+                                    Click="Validate_Click"
                                     Background="{StaticResource SecondaryBrush}"/>
-                            
-                            <Button Classes="success" Content="📄 Export to PDF" 
-                                    Click="ExportPdf_Click" 
+
+                            <Button Classes="modern" Content="🔍 Preview PDF"
+                                    Click="PreviewPdf_Click"
+                                    Background="{StaticResource PrimaryBrush}"
+                                    IsEnabled="{Binding IsValid}"/>
+
+                            <Button Classes="success" Content="📄 Export to PDF"
+                                    Click="ExportPdf_Click"
                                     IsEnabled="{Binding IsValid}"/>
                         </StackPanel>
                     </StackPanel>
