@@ -16,12 +16,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private readonly ITcgLiveParser _parser;
     private readonly IPdfService _pdfService;
     private readonly IDeckValidator _validator;
+    private readonly IConfigService _configService;
     
     private string _playerName = string.Empty;
     private string _playerId = string.Empty;
     private DateTime? _date = null;
     private string _division = string.Empty;
     private string _format = "Standard";
+    private bool _showTrainerSetInfo = false;
     private string _importText = string.Empty;
     private string _validationMessage = string.Empty;
     private bool _isValid;
@@ -31,39 +33,46 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public string PlayerName
     {
         get => _playerName;
-        set => SetProperty(ref _playerName, value);
+        set
+        {
+            if (SetProperty(ref _playerName, value))
+                SaveConfigAsync();
+        }
     }
-    
+
     public string PlayerId
     {
         get => _playerId;
-        set => SetProperty(ref _playerId, value);
+        set
+        {
+            if (SetProperty(ref _playerId, value))
+                SaveConfigAsync();
+        }
     }
-    
+
     public DateTime? Date
     {
         get => _date;
-        set 
-        { 
-            // Validate birth date is not too recent (must be at least 5 years ago)
+        set
+        {
             if (value.HasValue && value.Value > DateTime.Now.AddYears(-5))
             {
                 ValidationMessage = "Birth date must be at least 5 years ago.";
                 IsValid = false;
                 return;
             }
-            
-            // Validate birth date is not in the future
+
             if (value.HasValue && value.Value > DateTime.Now)
             {
                 ValidationMessage = "Birth date cannot be in the future.";
                 IsValid = false;
                 return;
             }
-            
+
             if (SetProperty(ref _date, value))
             {
                 UpdateDivisionFromBirthDate();
+                SaveConfigAsync();
             }
         }
     }
@@ -79,7 +88,13 @@ public class MainWindowViewModel : INotifyPropertyChanged
         get => _format;
         set => SetProperty(ref _format, value);
     }
-    
+
+    public bool ShowTrainerSetInfo
+    {
+        get => _showTrainerSetInfo;
+        set => SetProperty(ref _showTrainerSetInfo, value);
+    }
+
     public string ImportText
     {
         get => _importText;
@@ -110,20 +125,28 @@ public class MainWindowViewModel : INotifyPropertyChanged
     
     public Func<Task<IStorageFile?>>? ShowSaveFileDialog { get; set; }
     public Func<string, string, Task>? ShowMessageBox { get; set; }
+    public Func<byte[], string, Task>? ShowPdfPreview { get; set; }
     
-    public MainWindowViewModel()
+    public MainWindowViewModel() : this(new ConfigService())
+    {
+    }
+
+    public MainWindowViewModel(IConfigService configService)
     {
         _parser = new TcgLiveParser();
         _pdfService = new PdfService();
         _validator = new DeckValidator();
-        
+        _configService = configService;
+
         PokemonCards = [];
         TrainerCards = [];
         EnergyCards = [];
-        
+
         PokemonCards.CollectionChanged += (_, _) => UpdateCardCount();
         TrainerCards.CollectionChanged += (_, _) => UpdateCardCount();
         EnergyCards.CollectionChanged += (_, _) => UpdateCardCount();
+
+        LoadConfig();
     }
     
     public void ImportDeck()
@@ -295,34 +318,67 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
     
+    public async Task<byte[]?> GeneratePdf()
+    {
+        try
+        {
+            var deck = BuildDeck();
+            var templatePath = GetPdfTemplatePath();
+
+            if (templatePath == null)
+            {
+                if (ShowMessageBox != null)
+                    await ShowMessageBox("Error", "Template PDF not found. Please ensure play-pokemon-deck-list-85x11.pdf is in the application directory.");
+                return null;
+            }
+
+            return await _pdfService.FillDeckListPdf(templatePath, deck);
+        }
+        catch (Exception ex)
+        {
+            if (ShowMessageBox != null)
+                await ShowMessageBox("Error", $"Failed to generate PDF: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task PreviewPdf()
+    {
+        try
+        {
+            var pdfBytes = await GeneratePdf();
+            if (pdfBytes == null)
+                return;
+
+            var suggestedFileName = $"deck-list-{PlayerName}-{DateTime.Now:yyyy-MM-dd}.pdf";
+
+            if (ShowPdfPreview != null)
+                await ShowPdfPreview(pdfBytes, suggestedFileName);
+        }
+        catch (Exception ex)
+        {
+            if (ShowMessageBox != null)
+                await ShowMessageBox("Error", $"Failed to preview PDF: {ex.Message}");
+        }
+    }
+
     public async Task ExportPdf()
     {
         IStorageFile? file = null;
         if (ShowSaveFileDialog != null)
             file = await ShowSaveFileDialog();
-        
+
         if (file == null)
             return;
-        
+
         try
         {
-            var deck = BuildDeck();
-            var templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "play-pokemon-deck-list-85x11.pdf");
-            
-            if (!File.Exists(templatePath))
-            {
-                templatePath = Path.Combine(Directory.GetCurrentDirectory(), "play-pokemon-deck-list-85x11.pdf");
-            }
-            
-            if (!File.Exists(templatePath))
-            {
-                if (ShowMessageBox != null)
-                    await ShowMessageBox("Error", "Template PDF not found. Please ensure play-pokemon-deck-list-85x11.pdf is in the application directory.");
+            var pdfBytes = await GeneratePdf();
+            if (pdfBytes == null)
                 return;
-            }
-            
-            await _pdfService.SaveDeckListPdf(templatePath, file.Path.LocalPath, deck);
-            
+
+            await File.WriteAllBytesAsync(file.Path.LocalPath, pdfBytes);
+
             if (ShowMessageBox != null)
                 await ShowMessageBox("Success", $"Deck list exported to {file.Name}");
         }
@@ -331,6 +387,21 @@ public class MainWindowViewModel : INotifyPropertyChanged
             if (ShowMessageBox != null)
                 await ShowMessageBox("Error", $"Failed to export PDF: {ex.Message}");
         }
+    }
+
+    private string? GetPdfTemplatePath()
+    {
+        var baseDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "play-pokemon-deck-list-85x11.pdf");
+
+        if (File.Exists(baseDirectoryPath))
+            return baseDirectoryPath;
+
+        var currentDirectoryPath = Path.Combine(Directory.GetCurrentDirectory(), "play-pokemon-deck-list-85x11.pdf");
+
+        if (File.Exists(currentDirectoryPath))
+            return currentDirectoryPath;
+
+        return null;
     }
     
     private Deck BuildDeck()
@@ -343,12 +414,42 @@ public class MainWindowViewModel : INotifyPropertyChanged
             Date = Date,
             Division = Division,
             Format = Format,
+            ShowTrainerSetInfo = ShowTrainerSetInfo,
             Pokemon = PokemonCards.Select(vm => vm.ToCard()).ToList(),
             Trainers = TrainerCards.Select(vm => vm.ToCard()).ToList(),
             Energy = EnergyCards.Select(vm => vm.ToCard()).ToList()
         };
     }
-    
+
+    private void LoadConfig()
+    {
+        var config = _configService.LoadUserConfig();
+        _playerName = config.PlayerName;
+        _playerId = config.PlayerId;
+        _date = config.BirthDate;
+
+        OnPropertyChanged(nameof(PlayerName));
+        OnPropertyChanged(nameof(PlayerId));
+        OnPropertyChanged(nameof(Date));
+
+        if (_date.HasValue)
+            UpdateDivisionFromBirthDate();
+    }
+
+    private void SaveConfigAsync()
+    {
+        Task.Run(() =>
+        {
+            var config = new UserConfig
+            {
+                PlayerName = PlayerName,
+                PlayerId = PlayerId,
+                BirthDate = Date
+            };
+            _configService.SaveUserConfig(config);
+        });
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
     
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

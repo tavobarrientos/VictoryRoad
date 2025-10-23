@@ -12,10 +12,11 @@ public class Deck
     public List<Card> Pokemon { get; set; } = [];
     public List<Card> Trainers { get; set; } = [];
     public List<Card> Energy { get; set; } = [];
-    
-    public int TotalCards => 
-        Pokemon.Sum(c => c.Quantity) + 
-        Trainers.Sum(c => c.Quantity) + 
+    public bool ShowTrainerSetInfo { get; set; } = false;
+
+    public int TotalCards =>
+        Pokemon.Sum(c => c.Quantity) +
+        Trainers.Sum(c => c.Quantity) +
         Energy.Sum(c => c.Quantity);
     
     public bool IsValid => TotalCards == 60;
